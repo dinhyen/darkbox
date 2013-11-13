@@ -1,0 +1,132 @@
+@import "mixins";
+
+.darkbox,
+#db-overlay {
+  color: #333;
+  background-color: #eee;
+  font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 12px;
+}
+
+figure {
+  margin: 0;
+  position: relative;
+  img {
+    width: 100%;
+    height: 100%;
+  }
+}
+figcaption,
+.zoom {
+  color: #bbb;
+  background: #ccc;
+  background: rgba(0,0,0,.75);
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  transition: all 0.3s;
+  -webkit-transition-delay: 0.3s;
+  -moz-transition-delay: 0.3s;
+  transition-delay: 0.3s;
+}
+figcaption {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 5px;
+  text-align: justify;
+  width: 100%;
+}
+.zoom {
+  display: none;
+  font-size: 1.5em;
+  padding: 2px 5px;
+  position: absolute;
+  top: -160px;
+  right: 0;
+  &:hover {
+    color: white;
+    cursor: pointer;
+  }
+}
+.darkbox {
+  figure {
+    float: left;
+    margin-right: 1px;
+    margin-bottom: 1px;
+    max-width: 240px;
+    max-height: 160px;
+    min-height: 160px;
+    overflow: hidden;
+  }
+  figure:hover {
+    figcaption {
+      /* left: -240px; */ /* slide left */
+      bottom: -160px; /* slide down */
+    }
+    .zoom {
+      top: 0;
+    }
+  }
+  .zoom {
+    display: block;
+  }
+}
+
+#db-overlay {
+  @include transition(opacity 1s linear);
+  @include opacity(0);
+  background: rgba(0,0,0,.85);
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  overflow-y: scroll;
+  z-index: 100;
+}
+.db-zoom-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 150;
+  figure,
+  img {
+    @include border-radius(3px);
+  }
+  figure {
+    @include box-shadow(0 5px 20px black);
+    background: #eee url(../images/ajax.gif) no-repeat 50% 50%;
+    height: 100%;
+    width: 100%;
+  }
+  .db-prev,
+  .db-next {
+    @include opacity(0);
+    @include transition(opacity 0.5s linear);
+    background: rgba(0,0,0,0.5) no-repeat 50% 50%;
+    color: white;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 35px;
+    &:hover {
+      @include opacity(100);
+    }
+  }
+  .db-prev {
+    background-image: url(../images/prev.png);
+    left: 0;
+  }
+  .db-next {
+    background-image: url(../images/next.png);
+    right: 0;
+  }
+}
+
+

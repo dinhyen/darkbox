@@ -1,0 +1,1 @@
+Simple image display with overlaid caption using HTML5 <figure> and <figcaption>. Click to zoom.  Works with externally linked images.
