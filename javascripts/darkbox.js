@@ -12,6 +12,8 @@ var Darkbox = {
       .click(Darkbox.dismiss)
       .on('click', '.db-prev', Darkbox.prev)
       .on('click', '.db-next', Darkbox.next);
+    // Retrieve and store figure data. Assume that images to be displayed in the gallery are loaded
+    // with the page so that we can retrieve image dimensions ahead of time.
     $('.darkbox figure').each(function (index) {
       var $fig = $(this),
         $link = $fig.find('.zoom'),
@@ -93,6 +95,7 @@ var Darkbox = {
       });
     Darkbox._initial_size = size;
   },
+  /** Get image dimension by creating an in-memory image. Call callback once image is loaded. */
   _getImageSize: function ($img, index, imgLoadedCallback) {
     $('<img/>').prop('src', $img.prop('src'))
       .load(function () {
@@ -100,6 +103,7 @@ var Darkbox = {
         imgLoadedCallback(index, { w: this.width, h: this.height });
       });
   },
+  /** Callback to asynchronously update image data */
   _imageLoaded: function (index, size) {
     var fig = Darkbox._figs[index];
     fig.size = size;
