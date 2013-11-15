@@ -7,25 +7,32 @@ var Darkbox = {
   _duration: 200,
   init: function () {
     $('<div id="db-overlay">')
-      .html('<div class="db-zoom-img"><figure><img/><figcaption/></figure><a class="db-prev" href="#"></a><a class="db-next" href="#"></a></div>')
+      .html('<div class="db-zoom"><figure><img/><figcaption/></figure><a class="db-prev" href="#"></a><a class="db-next" href="#"></a></div>')
       .appendTo('body')
       .click(Darkbox.dismiss)
       .on('click', '.db-prev', Darkbox.prev)
       .on('click', '.db-next', Darkbox.next);
-    // Retrieve and store figure data. Assume that images to be displayed in the gallery are loaded
-    // with the page so that we can retrieve image dimensions ahead of time.
-    $('.darkbox figure').each(function (index) {
-      var $fig = $(this),
-        $link = $fig.find('.zoom'),
-        $img = $fig.find('img'),
-        src = $img.prop('src'),
-        caption = $fig.find('figcaption').text();
 
-      Darkbox._figs.push({ src: src, caption: caption });
-      Darkbox._getImageSize($img, index, Darkbox._imageLoaded);
-      $link.data('index', index); // save array index in data attribute
-    });
-    $('.zoom').click(Darkbox.zoom);
+    // Retrieve and store figure data. However, because the full-size images are not 
+    // loaded yet, wait until before they're being shown before determining dimension.
+    $('[data-darkbox]')
+      .click(Darkbox.zoom)
+      .each(function (index) {
+        var $fig = $(this),
+          src = $fig.prop('href'),
+          caption = $fig.prop('title');
+
+        $fig.data('index', index); // save array index in data attribute
+        Darkbox._figs.push({
+          src: src,
+          caption: caption,
+          isLandscape: function () {
+            if (typeof this.size === 'object') {
+              return this.size.w > this.size.h;
+            }
+          }
+        });
+      });
     $(document).keyup(function (event) {
       switch (event.keyCode) {
       case Darkbox.KEY_CODES.esc:
@@ -46,10 +53,36 @@ var Darkbox = {
     Darkbox._initial_size = { w: 0, h: 0 };
   },
   display: function () {
+    Darkbox._loadImage().done(Darkbox._animate);
+  },
+  _loadImage: function () {
+    var fig = Darkbox._figs[Darkbox._current_index],
+      $deferred = $.Deferred(),
+      $promise = $deferred.promise(),
+      $img,
+      img;
+
+    $img = $('<img/>')
+      .prop('src', fig.src)
+      .on('load', function () {
+        console.log('load ' + this.width + ' ' + this.height);
+        fig.size = { w: this.width, h: this.height };
+        $deferred.resolve(this); // resolve Deferred object, passing <img> to registered callbacks
+      });
+
+    // TODO: this doesn't get called
+    img = $img[0];
+    if (img.complete) {
+      $deferred.resolve(img); // if <img> already loaded, immediately resolve Deferred object
+    }
+
+    return $promise;
+  },
+  _animate: function ($new_img) {
     // console.log(Darkbox._figs)
     var $win = $(window),
       $overlay = $('#db-overlay'),
-      $zoom = $overlay.find('.db-zoom-img'),
+      $zoom = $overlay.find('.db-zoom'),
       $img = $overlay.find('img'),
       $caption = $overlay.find('figcaption'),
       win_size = { w: $win.width(), h: $win.height() },
@@ -57,7 +90,7 @@ var Darkbox = {
       fig = Darkbox._figs[Darkbox._current_index],
       size;
 
-    if (fig.isLandscape) {
+    if (fig.isLandscape()) {
       size = (fig.size.w < scaled_size.w)
                 ? fig.size
                 : { w: scaled_size.w, h: Math.round(fig.size.h * scaled_size.w / fig.size.w) };
@@ -67,6 +100,7 @@ var Darkbox = {
               : { w: Math.round(fig.size.w * scaled_size.h / fig.size.h), h: scaled_size.h };
     }
     // console.log(fig.size)
+
     $img.css('opacity', 0).hide();
     $caption.css('opacity', 0).hide();
     $zoom.css({
@@ -88,26 +122,12 @@ var Darkbox = {
         marginTop: -1 * size.h / 2 + 'px'
       }, Darkbox._duration)
       .promise().done(function () {
-        $img.prop('src', fig.src).show().animate({ opacity: 1 }, Darkbox._duration * 2);
+        $img.replaceWith($new_img).show().animate({ opacity: 1 }, Darkbox._duration * 2);
         if (fig.caption.length > 0) {
           $caption.text(fig.caption).show().animate({ opacity: 1 }, Darkbox._duration * 2);
         }
       });
     Darkbox._initial_size = size;
-  },
-  /** Get image dimension by creating an in-memory image. Call callback once image is loaded. */
-  _getImageSize: function ($img, index, imgLoadedCallback) {
-    $('<img/>').prop('src', $img.prop('src'))
-      .load(function () {
-        // console.log('load ' + this.width + ' ' + this.height)
-        imgLoadedCallback(index, { w: this.width, h: this.height });
-      });
-  },
-  /** Callback to asynchronously update image data */
-  _imageLoaded: function (index, size) {
-    var fig = Darkbox._figs[index];
-    fig.size = size;
-    fig.isLandscape = size.w > size.h;
   },
   next: function (event) {
     event.preventDefault();
