@@ -53,7 +53,8 @@ var Darkbox = {
     Darkbox._initial_size = { w: 0, h: 0 };
   },
   display: function () {
-    Darkbox._loadImage().done(Darkbox._animate);
+    Darkbox._preanimate();
+    Darkbox._loadImage().done(Darkbox._animate).fail(Darkbox._animate);
   },
   _loadImage: function () {
     var fig = Darkbox._figs[Darkbox._current_index],
@@ -67,7 +68,12 @@ var Darkbox = {
       .on('load', function () {
         console.log('load ' + this.width + ' ' + this.height);
         fig.size = { w: this.width, h: this.height };
-        $deferred.resolve(this); // resolve Deferred object, passing <img> to registered callbacks
+        $deferred.resolve(this); // resolve Deferred object, passing <img> to registered success handler
+      })
+      .on('error', function () {
+        fig.size = { w: 400, h: 300 };
+        img = $('<img src="images/not_found.jpg" />')[0];
+        $deferred.reject(img);  // reject, passing <img> to error handler
       });
 
     // TODO: this doesn't get called
@@ -78,12 +84,26 @@ var Darkbox = {
 
     return $promise;
   },
-  _animate: function ($new_img) {
-    // console.log(Darkbox._figs)
+  _preanimate: function () {
+    var $overlay = $('#db-overlay'),
+      $zoom = $overlay.find('.db-zoom'),
+      $zoom_img = $overlay.find('img'),
+      $caption = $overlay.find('figcaption');
+
+    $zoom_img.css('opacity', 0).hide();
+    $caption.css('opacity', 0).hide();
+    $zoom.css({
+      'width': Darkbox._initial_size.w + 'px',
+      'height': Darkbox._initial_size.h + 'px',
+      'margin-top': -1 * Darkbox._initial_size.h / 2 + 'px',
+      'margin-left': -1 * Darkbox._initial_size.w / 2 + 'px'
+    });
+  },
+  _animate: function ($img) {
     var $win = $(window),
       $overlay = $('#db-overlay'),
       $zoom = $overlay.find('.db-zoom'),
-      $img = $overlay.find('img'),
+      $zoom_img = $overlay.find('img'),
       $caption = $overlay.find('figcaption'),
       win_size = { w: $win.width(), h: $win.height() },
       scaled_size = { w: Math.round(win_size.w * 0.75), h: Math.round(win_size.h * 0.75) },
@@ -99,16 +119,7 @@ var Darkbox = {
               ? fig.size
               : { w: Math.round(fig.size.w * scaled_size.h / fig.size.h), h: scaled_size.h };
     }
-    // console.log(fig.size)
 
-    $img.css('opacity', 0).hide();
-    $caption.css('opacity', 0).hide();
-    $zoom.css({
-      'width': Darkbox._initial_size.w + 'px',
-      'height': Darkbox._initial_size.h + 'px',
-      'margin-top': -1 * Darkbox._initial_size.h / 2 + 'px',
-      'margin-left': -1 * Darkbox._initial_size.w / 2 + 'px'
-    });
     if ($overlay.not(':visible')) {
       $overlay.show().css('opacity', 1);
     }
@@ -122,7 +133,7 @@ var Darkbox = {
         marginTop: -1 * size.h / 2 + 'px'
       }, Darkbox._duration)
       .promise().done(function () {
-        $img.replaceWith($new_img).show().animate({ opacity: 1 }, Darkbox._duration * 2);
+        $zoom_img.replaceWith($img).show().animate({ opacity: 1 }, Darkbox._duration * 2);
         if (fig.caption.length > 0) {
           $caption.text(fig.caption).show().animate({ opacity: 1 }, Darkbox._duration * 2);
         }

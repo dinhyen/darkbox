@@ -1,6 +1,9 @@
 @import "mixins";
 
+$bg: #ccc;
+$border: #ccc;
 $color: #bbb;
+$border-radius: 6px;
 
 .darkbox,
 #db-overlay {
@@ -10,10 +13,26 @@ $color: #bbb;
   font-size: 12px;
 }
 .darkbox {
+  @include border-radius($border-radius);
+  @include box-shadow(inset 0 0 8px 0px rgba(0,0,0,0.6));
+  border-style: solid;
+  border-width: 1px;
+  border-color: lighten($bg, 30%) lighten($bg, 15%) darken($bg, 30%) darken($bg, 15%);
+  background-color: $bg;
+  background-image: url(../images/bg.png);
+  padding: 10px;
   font-size: 0; // remove gap between inline-blocks
   [data-darkbox] {
     display: inline-block;
+    line-height: 0;
     margin: 0 1px 1px 0;
+    vertical-align: top;
+    white-space: normal;
+    &:hover {
+      @include box-shadow(0 0 10px blue);
+      @include scale(1.1);
+      @include transition(all 0.3s ease);
+    }
   }
 }
 #db-overlay {
@@ -31,6 +50,8 @@ $color: #bbb;
   z-index: 100;
 }
 .db-zoom {
+  @include border-radius($border-radius);
+  border-style: none;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -38,7 +59,7 @@ $color: #bbb;
 
   figure,
   img {
-    @include border-radius(3px);
+    @include border-radius($border-radius);
   }
   figure {
     @include box-shadow(0 5px 20px black);
@@ -69,14 +90,15 @@ $color: #bbb;
   .db-prev,
   .db-next {
     @include opacity(0);
-    @include transition(opacity 0.5s linear);
+    @include transition(opacity 0.3s linear);
     background: rgba(0,0,0,0.5) no-repeat 50% 50%;
     color: white;
     padding: 0;
     position: absolute;
     top: 0;
     height: 100%;
-    width: 35px;
+    min-width: 50px;
+    width: 6.5%;
     &:hover {
       @include opacity(100);
     }
@@ -90,5 +112,3 @@ $color: #bbb;
     right: 0;
   }
 }
-
-
