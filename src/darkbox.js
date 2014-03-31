@@ -65,12 +65,10 @@
       size;
 
     if (fig.isLandscape()) {
-      size = (fig.size.w < scaled_size.w)
-                ? fig.size
+      size = (fig.size.w < scaled_size.w) ? fig.size
                 : { w: scaled_size.w, h: Math.round(fig.size.h * scaled_size.w / fig.size.w) };
     } else {
-      size = (fig.size.h < scaled_size.h)
-              ? fig.size
+      size = (fig.size.h < scaled_size.h) ? fig.size
               : { w: Math.round(fig.size.w * scaled_size.h / fig.size.h), h: scaled_size.h };
     }
 
