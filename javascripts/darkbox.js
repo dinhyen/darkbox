@@ -1,63 +1,16 @@
-/*global window */
-var Darkbox = {
-  KEY_CODES: { esc: 27, left: 37, right: 39 },
-  _figs: [],
-  _current_index: null,
-  _initial_size: { w: 0, h: 0 },
-  _duration: 200,
-  init: function () {
-    $('<div id="db-overlay">')
-      .html('<div class="db-zoom"><figure><img/><figcaption/></figure><a class="db-prev" href="#"></a><a class="db-next" href="#"></a></div>')
-      .appendTo('body')
-      .click(Darkbox.dismiss)
-      .on('click', '.db-prev', Darkbox.prev)
-      .on('click', '.db-next', Darkbox.next);
+/*jslint browser: true */
+/*global window, jQuery */
+(function (window, $) {
+  "use strict";
+  var KEY_CODES = { esc: 27, left: 37, right: 39 };
+  var figs = [],
+    current_index = null,
+    initial_size = { w: 0, h: 0 },
+    duration = 200,
+    $win = $(window);
 
-    // Retrieve and store figure data. However, because the full-size images are not 
-    // loaded yet, wait until before they're being shown before determining dimension.
-    $('[data-darkbox]')
-      .click(Darkbox.zoom)
-      .each(function (index) {
-        var $fig = $(this),
-          src = $fig.prop('href'),
-          caption = $fig.prop('title');
-
-        $fig.data('index', index); // save array index in data attribute
-        Darkbox._figs.push({
-          src: src,
-          caption: caption,
-          isLandscape: function () {
-            if (typeof this.size === 'object') {
-              return this.size.w > this.size.h;
-            }
-          }
-        });
-      });
-    $(document).keyup(function (event) {
-      switch (event.keyCode) {
-      case Darkbox.KEY_CODES.esc:
-        Darkbox.dismiss(event);
-        break;
-      case Darkbox.KEY_CODES.left:
-        Darkbox.prev(event);
-        break;
-      case Darkbox.KEY_CODES.right:
-        Darkbox.next(event);
-        break;
-      }
-    });
-  },
-  dismiss: function (event) {
-    event.preventDefault();
-    $('#db-overlay').css('opacity', 0).hide();
-    Darkbox._initial_size = { w: 0, h: 0 };
-  },
-  display: function () {
-    Darkbox._preanimate();
-    Darkbox._loadImage().done(Darkbox._animate).fail(Darkbox._animate);
-  },
-  _loadImage: function () {
-    var fig = Darkbox._figs[Darkbox._current_index],
+  function loadImage() {
+    var fig = figs[current_index],
       $deferred = $.Deferred(),
       $promise = $deferred.promise(),
       $img,
@@ -83,8 +36,9 @@ var Darkbox = {
     }
 
     return $promise;
-  },
-  _preanimate: function () {
+  }
+
+  function preanimate() {
     var $overlay = $('#db-overlay'),
       $zoom = $overlay.find('.db-zoom'),
       $zoom_img = $overlay.find('img'),
@@ -93,21 +47,21 @@ var Darkbox = {
     $zoom_img.css('opacity', 0).hide();
     $caption.css('opacity', 0).hide();
     $zoom.css({
-      'width': Darkbox._initial_size.w + 'px',
-      'height': Darkbox._initial_size.h + 'px',
-      'margin-top': -1 * Darkbox._initial_size.h / 2 + 'px',
-      'margin-left': -1 * Darkbox._initial_size.w / 2 + 'px'
+      'width': initial_size.w + 'px',
+      'height': initial_size.h + 'px',
+      'margin-top': -1 * initial_size.h / 2 + 'px',
+      'margin-left': -1 * initial_size.w / 2 + 'px'
     });
-  },
-  _animate: function ($img) {
-    var $win = $(window),
-      $overlay = $('#db-overlay'),
+  }
+
+  function doAnimate($img) {
+    var $overlay = $('#db-overlay'),
       $zoom = $overlay.find('.db-zoom'),
       $zoom_img = $overlay.find('img'),
       $caption = $overlay.find('figcaption'),
       win_size = { w: $win.width(), h: $win.height() },
       scaled_size = { w: Math.round(win_size.w * 0.75), h: Math.round(win_size.h * 0.75) },
-      fig = Darkbox._figs[Darkbox._current_index],
+      fig = figs[current_index],
       size;
 
     if (fig.isLandscape()) {
@@ -127,48 +81,101 @@ var Darkbox = {
       .animate({
         width: size.w + 'px',
         marginLeft: -1 * size.w / 2 + 'px'
-      }, Darkbox._duration)
+      }, duration)
       .animate({
         height: size.h + 'px',
         marginTop: -1 * size.h / 2 + 'px'
-      }, Darkbox._duration)
+      }, duration)
       .promise().done(function () {
-        $zoom_img.replaceWith($img).show().animate({ opacity: 1 }, Darkbox._duration * 2);
+        $zoom_img.replaceWith($img).show().animate({ opacity: 1 }, duration * 2);
         if (fig.caption.length > 0) {
-          $caption.text(fig.caption).show().animate({ opacity: 1 }, Darkbox._duration * 2);
+          $caption.text(fig.caption).show().animate({ opacity: 1 }, duration * 2);
         }
       });
-    Darkbox._initial_size = size;
-  },
-  next: function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (Darkbox._current_index !== null) {
-      Darkbox._current_index++;
-      if (Darkbox._current_index >= Darkbox._figs.length) {
-        Darkbox._current_index = 0;
-      }
-    }
-    Darkbox.display();
-  },
-  prev: function (event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (Darkbox._current_index !== null) {
-      Darkbox._current_index--;
-      if (Darkbox._current_index < 0) {
-        Darkbox._current_index = Darkbox._figs.length - 1;
-      }
-    }
-    Darkbox.display();
-  },
-  zoom: function (event) {
-    event.preventDefault();
-    var $link = $(this),
-      index = parseInt($link.data('index'), 10);
-    Darkbox._current_index = index;
-    Darkbox.display();
+    initial_size = size;
   }
-};
-$(Darkbox.init);
 
+  var Darkbox = {
+    init: function () {
+      $('<div id="db-overlay">')
+        .html('<div class="db-zoom"><figure><img/><figcaption/></figure><a class="db-prev" href="#"></a><a class="db-next" href="#"></a></div>')
+        .appendTo('body')
+        .click(Darkbox.dismiss)
+        .on('click', '.db-prev', Darkbox.prev)
+        .on('click', '.db-next', Darkbox.next);
+
+      // Retrieve and store figure data. However, because the full-size images are not 
+      // loaded yet, wait until before they're being shown before determining dimension.
+      $('[data-darkbox]')
+        .click(Darkbox.zoom)
+        .each(function (index) {
+          var $fig = $(this),
+            src = $fig.prop('href'),
+            caption = $fig.prop('title');
+
+          $fig.data('index', index); // save array index in data attribute
+          figs.push({
+            src: src,
+            caption: caption,
+            isLandscape: function () {
+              if (typeof this.size === 'object') {
+                return this.size.w > this.size.h;
+              }
+            }
+          });
+        });
+      $(document).keyup(function (event) {
+        switch (event.keyCode) {
+        case KEY_CODES.esc:
+          Darkbox.dismiss(event);
+          break;
+        case KEY_CODES.left:
+          Darkbox.prev(event);
+          break;
+        case KEY_CODES.right:
+          Darkbox.next(event);
+          break;
+        }
+      });
+    },
+    dismiss: function (event) {
+      event.preventDefault();
+      $('#db-overlay').css('opacity', 0).hide();
+      initial_size = { w: 0, h: 0 };
+    },
+    display: function () {
+      preanimate();
+      loadImage().done(doAnimate).fail(doAnimate);
+    },
+    next: function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (current_index !== null) {
+        current_index++;
+        if (current_index >= figs.length) {
+          current_index = 0;
+        }
+      }
+      Darkbox.display();
+    },
+    prev: function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (current_index !== null) {
+        current_index--;
+        if (current_index < 0) {
+          current_index = figs.length - 1;
+        }
+      }
+      Darkbox.display();
+    },
+    zoom: function (event) {
+      event.preventDefault();
+      var $link = $(this),
+        index = parseInt($link.data('index'), 10);
+      current_index = index;
+      Darkbox.display();
+    }
+  };
+  $(Darkbox.init);
+}(window, jQuery));
