@@ -98,10 +98,18 @@
 }
 /* line 71, ../sass/darkbox.scss */
 .db-zoom figure img {
-  width: 100%;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  border: none;
   height: 100%;
+  width: 100%;
+  margin: 0;
+  max-width: inherit;
+  max-height: inherit;
+  padding: 0;
 }
-/* line 75, ../sass/darkbox.scss */
+/* line 81, ../sass/darkbox.scss */
 .db-zoom figure figcaption {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -124,7 +132,7 @@
   text-align: justify;
   width: 100%;
 }
-/* line 91, ../sass/darkbox.scss */
+/* line 97, ../sass/darkbox.scss */
 .db-zoom .db-prev,
 .db-zoom .db-next {
   opacity: 0;
@@ -142,18 +150,18 @@
   min-width: 50px;
   width: 6.5%;
 }
-/* line 102, ../sass/darkbox.scss */
+/* line 108, ../sass/darkbox.scss */
 .db-zoom .db-prev:hover,
 .db-zoom .db-next:hover {
   opacity: 1;
   filter: alpha(opacity=100);
 }
-/* line 106, ../sass/darkbox.scss */
+/* line 112, ../sass/darkbox.scss */
 .db-zoom .db-prev {
   background-image: url(../images/prev.png);
   left: 0;
 }
-/* line 110, ../sass/darkbox.scss */
+/* line 116, ../sass/darkbox.scss */
 .db-zoom .db-next {
   background-image: url(../images/next.png);
   right: 0;

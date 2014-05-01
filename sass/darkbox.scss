@@ -69,8 +69,14 @@ $border-radius: 6px;
     margin: 0;
     position: relative;
     img {
-      width: 100%;
+      @include box-shadow(none);
+      border: none;
       height: 100%;
+      width: 100%;
+      margin: 0;
+      max-width: inherit;
+      max-height: inherit;
+      padding: 0;
     }
     figcaption {
       @include box-sizing(border-box);
